@@ -14,7 +14,16 @@
 // Include common definitions from above.
 apply from: '../build.common.gradle'
 
+import com.google.common.collect.Iterables
 import org.apache.tools.ant.filters.ReplaceTokens
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation group: 'com.google.guava', name: 'guava', version: '24.1-android'
+}
 
 def vuforiaKey
 if (project.hasProperty('vuforiaKey')) {
@@ -35,7 +44,7 @@ task replaceVuforiaKey(type: Copy) {
 	
 	afterEvaluate {
 		android.applicationVariants.all { variant ->
-			variant.javaCompiler.getSource().plus replaceVuforiaKey.outputs.files
+			Iterables.addAll(variant.javaCompiler.getSource().getFiles(), replaceVuforiaKey.outputs.files)
 			variant.javaCompiler.getSource().getFiles().remove metaDir
 		}
 	}
