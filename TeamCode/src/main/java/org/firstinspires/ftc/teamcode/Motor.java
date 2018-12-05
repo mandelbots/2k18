@@ -7,7 +7,7 @@ public enum Motor {
 	FRONT_RIGHT,
 	BACK_LEFT,
 	BACK_RIGHT;
-
+	
 	@Override
 	public String toString() {
 		return this.name().toLowerCase(Locale.US);

@@ -13,3 +13,36 @@
 
 // Include common definitions from above.
 apply from: '../build.common.gradle'
+
+import org.apache.tools.ant.filters.ReplaceTokens
+
+def vuforiaKey
+if (project.hasProperty('vuforiaKey')) {
+	vuforiaKey = project.vuforiaKey
+} else {
+	vuforiaKey = System.getenv('VUFORIA_KEY')
+}
+
+def metaDir = new File(project.projectDir, 'src/meta/java')
+android.sourceSets.main.java.srcDirs += metaDir
+
+task replaceVuforiaKey(type: Copy) {
+	from metaDir
+	into "$buildDir/__generated_src"
+	filter(ReplaceTokens, tokens: [
+		'VuforiaKey': vuforiaKey
+	])
+	
+	afterEvaluate {
+		android.applicationVariants.all { variant ->
+			variant.javaCompiler.getSource().plus replaceVuforiaKey.outputs.files
+			variant.javaCompiler.getSource().getFiles().remove metaDir
+		}
+	}
+}
+
+afterEvaluate {
+	android.applicationVariants.all { variant ->
+		variant.javaCompiler.dependsOn(replaceVuforiaKey)
+	}
+}

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<QCARConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="qcar_config.xsd">
+  <Tracking>
+    <ImageTarget name="MoonSurface" size="0.254000 0.181622" />
+    <ImageTarget name="MarsSurface" size="0.254000 0.158794" />
+    <ImageTarget name="Rover" size="0.254000 0.183342" />
+    <ImageTarget name="Nebula" size="0.254000 0.199409" />
+  </Tracking>
+</QCARConfig>
