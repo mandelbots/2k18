@@ -1,9 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.vuforia.Image;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
@@ -17,19 +17,39 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
+import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
+import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
+import org.firstinspires.ftc.robotcore.external.tfod.TfodRoverRuckus;
+/*
+import org.opencv.android.Utils;
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.imgproc.Moments;*/
+
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Autonomous(name = "Autonomous", group = "Autonomous")
-public class MandelbotsAutonomus extends LinearOpMode implements IMandelbotsOpMode {
+public class MandelbotsAutonomus extends MandelbotsOpMode {
 	private final ElapsedTime runtime = new ElapsedTime();
 	private final Map<Motor, DcMotor> motorMap = new EnumMap<>(Motor.class);
 	private VuforiaLocalizer vuforia;
+	private VuforiaTrackables navTargets;
+	
 	private final Map<String, VuforiaTrackable> nameToNavTarget = new HashMap<>();
 	
 	private OpenGLMatrix lastLocation = null;
 	private boolean targetVisible = false;
+	
+	private TFObjectDetector tfod;
+	
+	private Image rgb;
 	
 	@Override
 	public void runOpMode() throws InterruptedException {
@@ -43,16 +63,136 @@ public class MandelbotsAutonomus extends LinearOpMode implements IMandelbotsOpMo
 		getMotor(Motor.FRONT_RIGHT).setDirection(DcMotor.Direction.REVERSE);
 		getMotor(Motor.BACK_RIGHT).setDirection(DcMotor.Direction.REVERSE);
 		
+		this.initVuforia();
+		if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
+			initTfod();
+		}
+		
+		waitForStart();
+		runtime.reset();
+		
+		if (opModeIsActive()) {
+			if (tfod != null) {
+				tfod.activate();
+			}
+			
+			while (opModeIsActive()) {
+				targetVisible = false;
+				for (VuforiaTrackable trackable : navTargets) {
+					if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
+						telemetry.addData("Visible Target", trackable.getName());
+						targetVisible = true;
+						OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getUpdatedRobotLocation();
+						if (robotLocationTransform != null) {
+							lastLocation = robotLocationTransform;
+						}
+						break;
+					}
+				}
+				
+				if (targetVisible) {
+					VectorF translation = lastLocation.getTranslation();
+					Orientation rotation = Orientation.getOrientation(lastLocation, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
+				} else {
+					telemetry.addData("Visible Target", "none");
+				}
+				
+				if (tfod != null) {
+					List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
+					if (updatedRecognitions != null) {
+						telemetry.addData("# Object Detected", updatedRecognitions.size());
+						if (updatedRecognitions.size() == 3) {
+							int goldMineralX = -1;
+							int silverMineral1X = -1;
+							int silverMineral2X = -1;
+							for (Recognition recognition : updatedRecognitions) {
+								if (recognition.getLabel().equals(TfodRoverRuckus.LABEL_GOLD_MINERAL)) {
+									goldMineralX = (int) recognition.getLeft();
+								} else if (silverMineral1X == -1) {
+									silverMineral1X = (int) recognition.getLeft();
+								} else {
+									silverMineral2X = (int) recognition.getLeft();
+								}
+							}
+							if (goldMineralX != -1 && silverMineral1X != -1 && silverMineral2X != -1) {
+								// TODO dispatch logic
+								
+								if (goldMineralX < silverMineral1X && goldMineralX < silverMineral2X) {
+									telemetry.addData("Gold Mineral Position", "Left");
+								} else if (goldMineralX > silverMineral1X && goldMineralX > silverMineral2X) {
+									telemetry.addData("Gold Mineral Position", "Right");
+								} else {
+									telemetry.addData("Gold Mineral Position", "Center");
+								}
+							}
+						}
+						telemetry.update();
+					}
+				}
+				
+				// BEGIN OPENCV
+				/*
+				VuforiaLocalizer.CloseableFrame frame = vuforia.getFrameQueue().take(); //takes the frame at the head of the queue
+				long numImages = frame.getNumImages();
+				
+				for (int i = 0; i < numImages; i++) {
+					if (frame.getImage(i).getFormat() == PIXEL_FORMAT.RGB565) {
+						rgb = frame.getImage(i);
+						break;
+					}
+				}
+				
+				Bitmap bm = Bitmap.createBitmap(rgb.getWidth(), rgb.getHeight(), Bitmap.Config.RGB_565);
+				bm.copyPixelsFromBuffer(rgb.getPixels());
+				
+				Mat tmp = new Mat(rgb.getWidth(), rgb.getHeight(), CvType.CV_8UC4);
+				Utils.bitmapToMat(bm, tmp);
+				Mat hsv = new Mat();
+				Imgproc.cvtColor(tmp, hsv, Imgproc.COLOR_RGB2HSV);
+				
+				this.detectContour(hsv);
+				
+				frame.close();*/
+				
+				// END OPENCV
+				
+				
+				telemetry.update();
+				
+				// TODO add op mode code
+			}
+			
+			if (tfod != null) {
+				tfod.shutdown();
+			}
+		}
+	}
+	/*
+	private void detectContour(Mat hsv) {
+		Mat filteredHSV = new Mat();
+		Core.inRange(hsv, new Scalar(20.0*180/360, 80.0*255/100, 57.0*255/100),
+				new Scalar(44.0*180/360, 100.0*255/100, 100.0*255/100), filteredHSV);
+		List<MatOfPoint> contours = new ArrayList<>();
+		Imgproc.findContours(filteredHSV, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+		contours.stream().max(Comparator.comparingDouble(Imgproc::contourArea))
+		.ifPresent(matOfPoint -> {
+			Moments moments = Imgproc.moments(matOfPoint);
+			double centerX = moments.m10 / moments.m00, centerY = moments.m01 / moments.m00;
+			telemetry.addData("CenterX", centerX);
+			telemetry.addData("CenterY", centerY);
+		});
+	}*/
+	
+	private void initVuforia() {
 		int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 		VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
-		parameters.vuforiaLicenseKey = Meta.VUFORIA_KEY;
+		parameters.vuforiaLicenseKey = ""; // TODO add key as environment variable or separate file
 		parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
 		vuforia = ClassFactory.getInstance().createVuforia(parameters);
 		
-		VuforiaTrackables navTargets = this.vuforia.loadTrackablesFromAsset("FourImages");
+		navTargets = this.vuforia.loadTrackablesFromAsset("FourImages");
 		for (VuforiaTrackable trackable: navTargets) {
 			nameToNavTarget.put(trackable.getName(), trackable);
-			// TODO add code for each trackable
 			trackable.setLocation(NavTarget.fromTrackableName(trackable.getName()).getLocation());
 		}
 		
@@ -63,31 +203,13 @@ public class MandelbotsAutonomus extends LinearOpMode implements IMandelbotsOpMo
 		for (VuforiaTrackable trackable: navTargets) {
 			((VuforiaTrackableDefaultListener)trackable.getListener()).setPhoneInformation(phoneLoc, parameters.cameraDirection);
 		}
-		
-		waitForStart();
-		runtime.reset();
-		
-		while (opModeIsActive()) {
-			targetVisible = false;
-			for (VuforiaTrackable trackable: navTargets) {
-				if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
-					telemetry.addData("Visible Target", trackable.getName());
-					targetVisible = true;
-					OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener)trackable.getListener()).getUpdatedRobotLocation();
-					if (robotLocationTransform != null) {
-						lastLocation = robotLocationTransform;
-					}
-					break;
-				}
-			}
-			
-			if (targetVisible) {
-				VectorF translation = lastLocation.getTranslation();
-				Orientation rotation = Orientation.getOrientation(lastLocation, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
-			}
-			
-			// TODO add op mode code
-		}
+	}
+	
+	private void initTfod() {
+		int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+		TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(cameraMonitorViewId);
+		tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
+		tfod.loadModelFromAsset(TfodRoverRuckus.TFOD_MODEL_ASSET, TfodRoverRuckus.LABEL_GOLD_MINERAL, TfodRoverRuckus.LABEL_SILVER_MINERAL);
 	}
 	
 	@Override
