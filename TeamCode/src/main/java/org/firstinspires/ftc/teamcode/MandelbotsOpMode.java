@@ -1,25 +1,34 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 public abstract class MandelbotsOpMode extends LinearOpMode {
 	abstract DcMotor getMotor(Motor motor);
 	
+	public boolean isAutonomous() {
+		return this.getClass().getAnnotation(Autonomous.class) != null;
+	}
+	
 	public void moveRobot(double x, double y, double rot) {
-		// see https://ftcforum.usfirst.org/forum/ftc-technology/android-studio/6361-mecanum-wheels-drive-code-example
+		// adapted from https://ftcforum.usfirst.org/forum/ftc-technology/android-studio/6361-mecanum-wheels-drive-code-example
 		
 		double r = Math.hypot(x, y);
 		double robotAngle = Math.atan2(y, x) - Math.PI / 4;
-		final double v1 = r * Math.cos(robotAngle) + rot;
-		final double v2 = r * Math.sin(robotAngle) - rot;
-		final double v3 = r * Math.sin(robotAngle) + rot;
-		final double v4 = r * Math.cos(robotAngle) - rot;
+		final double v1 = r * Math.cos(robotAngle) - rot;
+		final double v2 = r * Math.sin(robotAngle) + rot;
+		final double v3 = r * Math.sin(robotAngle) - rot;
+		final double v4 = r * Math.cos(robotAngle) + rot;
 		
 		this.getMotor(Motor.FRONT_LEFT).setPower(v1);
 		this.getMotor(Motor.FRONT_RIGHT).setPower(v2);
 		this.getMotor(Motor.BACK_LEFT).setPower(v3);
 		this.getMotor(Motor.BACK_RIGHT).setPower(v4);
+		
+		if (!isAutonomous()) {
+			telemetry.addData("Rotation", robotAngle * 180 / Math.PI);
+		}
 	}
 	
 	public void grabLatch() {
@@ -41,7 +50,7 @@ public abstract class MandelbotsOpMode extends LinearOpMode {
 		// TODO add
 	}
 	
-	void dumpContents() {
+	public void dumpContents() {
 		// TODO add
 	}
 }

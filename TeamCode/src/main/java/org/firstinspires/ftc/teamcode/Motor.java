@@ -6,7 +6,9 @@ public enum Motor {
 	FRONT_LEFT,
 	FRONT_RIGHT,
 	BACK_LEFT,
-	BACK_RIGHT;
+	BACK_RIGHT,
+	ARM,
+	LIFT;
 	
 	@Override
 	public String toString() {

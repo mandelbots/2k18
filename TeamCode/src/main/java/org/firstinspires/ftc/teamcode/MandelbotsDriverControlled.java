@@ -29,7 +29,10 @@ public class MandelbotsDriverControlled extends MandelbotsOpMode {
 		
 		while (opModeIsActive()) {
 			this.moveRobot(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+			
+			getMotor(Motor.LIFT).setPower(gamepad1.x ? 1 : (gamepad1.y ? -1 : 0));
 			// TODO add op mode code
+			telemetry.update();
 		}
 	}
 	
