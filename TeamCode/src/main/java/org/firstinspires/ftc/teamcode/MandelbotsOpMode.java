@@ -4,6 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import java.util.Arrays;
+
 public abstract class MandelbotsOpMode extends LinearOpMode {
 	abstract DcMotor getMotor(Motor motor);
 	
@@ -12,22 +14,29 @@ public abstract class MandelbotsOpMode extends LinearOpMode {
 	}
 	
 	public void moveRobot(double x, double y, double rot) {
-		// adapted from https://ftcforum.usfirst.org/forum/ftc-technology/android-studio/6361-mecanum-wheels-drive-code-example
+		if (!isAutonomous()) {
+			telemetry.addData("x", x);
+			telemetry.addData("y", y);
+			telemetry.addData("rot", rot);
+		}
 		
-		double r = Math.hypot(x, y);
-		double robotAngle = Math.atan2(y, x) - Math.PI / 4;
-		final double v1 = r * Math.cos(robotAngle) - rot;
-		final double v2 = r * Math.sin(robotAngle) + rot;
-		final double v3 = r * Math.sin(robotAngle) - rot;
-		final double v4 = r * Math.cos(robotAngle) + rot;
+		double[] vals = new double[] { -y + x + rot, -y - x - rot, -y - x + rot, -y + x - rot};
+		telemetry.addData("powers", Arrays.toString(vals));
 		
-		this.getMotor(Motor.FRONT_LEFT).setPower(v1);
-		this.getMotor(Motor.FRONT_RIGHT).setPower(v2);
-		this.getMotor(Motor.BACK_LEFT).setPower(v3);
-		this.getMotor(Motor.BACK_RIGHT).setPower(v4);
+		double scale = 1;
+		for (double val: vals) {
+			scale = Math.max(scale, Math.abs(val));
+		}
+		for (int i=0; i<4; ++i) {
+			vals[i] /= scale;
+		}
+		
+		for (int i=0; i<4; ++i) {
+			this.getMotor(Motor.getMovementMotors().get(i)).setPower(vals[i]);
+		}
 		
 		if (!isAutonomous()) {
-			telemetry.addData("Rotation", robotAngle * 180 / Math.PI);
+			//telemetry.addData("Rotation", robotAngle * 180 / Math.PI);
 		}
 	}
 	

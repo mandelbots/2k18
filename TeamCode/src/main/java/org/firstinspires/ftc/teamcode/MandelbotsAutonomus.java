@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.vuforia.Image;
 
+import org.apache.commons.io.IOUtils;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
@@ -30,6 +31,10 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Moments;*/
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.CharBuffer;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -60,8 +65,8 @@ public class MandelbotsAutonomus extends MandelbotsOpMode {
 			motorMap.put(motor, hardwareMap.get(DcMotor.class, motor.toString()));
 		}
 		
-		getMotor(Motor.FRONT_RIGHT).setDirection(DcMotor.Direction.REVERSE);
-		getMotor(Motor.BACK_RIGHT).setDirection(DcMotor.Direction.REVERSE);
+		getMotor(Motor.FRONT_LEFT).setDirection(DcMotor.Direction.REVERSE);
+		getMotor(Motor.BACK_LEFT).setDirection(DcMotor.Direction.REVERSE);
 		
 		this.initVuforia();
 		if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
@@ -98,6 +103,7 @@ public class MandelbotsAutonomus extends MandelbotsOpMode {
 				}
 				
 				if (tfod != null) {
+					//telemetry.addData("TFOD", "yes");
 					List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
 					if (updatedRecognitions != null) {
 						telemetry.addData("# Object Detected", updatedRecognitions.size());
@@ -186,14 +192,26 @@ public class MandelbotsAutonomus extends MandelbotsOpMode {
 	private void initVuforia() {
 		int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 		VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
-		parameters.vuforiaLicenseKey = ""; // TODO add key as environment variable or separate file
+		
+		Reader keyReader = new InputStreamReader(MandelbotsAutonomus.class.getResourceAsStream("/assets/vuforia_key.txt"));
+		try {
+			parameters.vuforiaLicenseKey = IOUtils.toString(keyReader);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 		parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
 		vuforia = ClassFactory.getInstance().createVuforia(parameters);
 		
 		navTargets = this.vuforia.loadTrackablesFromAsset("FourImages");
-		for (VuforiaTrackable trackable: navTargets) {
+		//System.out.println("YOU PHAT "+navTargets.size());
+		
+		final NavTarget[] NTVALUES = NavTarget.values();
+		
+		for (int i=0; i<navTargets.size(); ++i) {
+			VuforiaTrackable trackable = navTargets.get(i);
+			trackable.setName(NTVALUES[i].getTrackableName());
 			nameToNavTarget.put(trackable.getName(), trackable);
-			trackable.setLocation(NavTarget.fromTrackableName(trackable.getName()).getLocation());
+			trackable.setLocation(NTVALUES[i].getLocation());
 		}
 		
 		OpenGLMatrix phoneLoc = OpenGLMatrix.translation(Constants.CAM_FORWARD_DISP, Constants.CAM_LEFT_DISP, Constants.CAM_VERT_DISP)

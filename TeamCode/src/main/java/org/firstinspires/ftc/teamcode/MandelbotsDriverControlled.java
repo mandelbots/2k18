@@ -21,8 +21,11 @@ public class MandelbotsDriverControlled extends MandelbotsOpMode {
 			motorMap.put(motor, hardwareMap.get(DcMotor.class, motor.toString()));
 		}
 		
-		getMotor(Motor.FRONT_RIGHT).setDirection(DcMotor.Direction.REVERSE);
-		getMotor(Motor.BACK_RIGHT).setDirection(DcMotor.Direction.REVERSE);
+		getMotor(Motor.FRONT_LEFT).setDirection(DcMotor.Direction.REVERSE);
+		getMotor(Motor.BACK_LEFT).setDirection(DcMotor.Direction.REVERSE);
+		
+		getMotor(Motor.LIFT).setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		getMotor(Motor.LIFT).setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 		
 		waitForStart();
 		runtime.reset();
@@ -30,7 +33,9 @@ public class MandelbotsDriverControlled extends MandelbotsOpMode {
 		while (opModeIsActive()) {
 			this.moveRobot(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
 			
-			getMotor(Motor.LIFT).setPower(gamepad1.x ? 1 : (gamepad1.y ? -1 : 0));
+			telemetry.addData("Lift position", getMotor(Motor.LIFT).getCurrentPosition());
+			
+			getMotor(Motor.LIFT).setPower((gamepad1.x ? 1 : 0) + (gamepad1.y ? -1 : 0));
 			// TODO add op mode code
 			telemetry.update();
 		}

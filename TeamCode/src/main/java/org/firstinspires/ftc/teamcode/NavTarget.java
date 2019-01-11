@@ -20,6 +20,7 @@ public enum NavTarget {
 	}
 	
 	public static NavTarget fromTrackableName(String name) {
+		System.out.println("THE TEEHEE IS "+name);
 		return nameToTarget.get(name);
 	}
 	
