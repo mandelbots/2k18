@@ -6,17 +6,26 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public enum NavTarget {
-	MOON_SURFACE("MoonSurface"), MARS_SURFACE("MarsSurface"), ROVER("Rover"), NEBULA("Nebula");
+	ROVER("Rover"), MOON_SURFACE("MoonSurface"), MARS_SURFACE("MarsSurface"), NEBULA("Nebula");
 	
 	private static final Map<String, NavTarget> nameToTarget = new HashMap<>();
 	static {
 		for (NavTarget val: NavTarget.values()) {
 			nameToTarget.put(val.getTrackableName(), val);
 		}
+	}
+	
+	private static final NavTarget[] VALUES = values();
+	
+	public static List<NavTarget> getValues() {
+		return Collections.unmodifiableList(Arrays.asList(VALUES));
 	}
 	
 	public static NavTarget fromTrackableName(String name) {
