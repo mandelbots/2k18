@@ -36,6 +36,7 @@ public class MandelbotsDriverControlled extends MandelbotsOpMode {
 			telemetry.addData("Lift position", getMotor(Motor.LIFT).getCurrentPosition());
 			
 			getMotor(Motor.LIFT).setPower((gamepad1.x ? 1 : 0) + (gamepad1.y ? -1 : 0));
+			getMotor(Motor.ARM).setPower((gamepad1.a ? 1 : 0) + (gamepad1.b ? -1 : 0));
 			// TODO add op mode code
 			telemetry.update();
 		}
