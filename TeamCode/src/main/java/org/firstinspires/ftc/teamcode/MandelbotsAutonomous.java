@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.apache.commons.io.IOUtils;
@@ -18,6 +20,8 @@ import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +37,8 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
 public class MandelbotsAutonomous extends MandelbotsOpMode {
 	private final ElapsedTime runtime = new ElapsedTime();
 	private final Map<Motor, DcMotor> motorMap = new EnumMap<>(Motor.class);
+	private final Map<CRServoType, CRServo> crServoMap = new EnumMap<>(CRServoType.class);
+	private final Map<ServoType, Servo> servoMap = new EnumMap<>(ServoType.class);
 	
 	private VuforiaLocalizer vuforia;
 	private TFObjectDetector tfod;
@@ -45,6 +51,7 @@ public class MandelbotsAutonomous extends MandelbotsOpMode {
 	
 	private OpenGLMatrix lastLocation = null;
 	private boolean targetVisible = false;
+	private List<Recognition> recognitions = Collections.emptyList();
 	
 	@Override
 	public void runOpMode() throws InterruptedException {
@@ -52,6 +59,12 @@ public class MandelbotsAutonomous extends MandelbotsOpMode {
 		
 		for (Motor motor : Motor.values()) {
 			motorMap.put(motor, hardwareMap.get(DcMotor.class, motor.toString()));
+		}
+		for (CRServoType servoType: CRServoType.values()) {
+			crServoMap.put(servoType, hardwareMap.get(CRServo.class, servoType.toString()));
+		}
+		for (ServoType servoType: ServoType.values()) {
+			servoMap.put(servoType, hardwareMap.get(Servo.class, servoType.toString()));
 		}
 		
 		getMotor(Motor.FRONT_LEFT).setDirection(DcMotor.Direction.REVERSE);
@@ -83,7 +96,7 @@ public class MandelbotsAutonomous extends MandelbotsOpMode {
 		targetsRoverRuckus.activate();
 		if (opModeIsActive()) {
 			if (tfod != null) {
-				tfod.activate();
+				//tfod.activate();
 			}
 			
 			while (opModeIsActive()) {
@@ -122,12 +135,15 @@ public class MandelbotsAutonomous extends MandelbotsOpMode {
 				if (tfod != null) {
 					List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
 					if (updatedRecognitions != null) {
-						telemetry.addData("# Object Detected", updatedRecognitions.size());
-						if (updatedRecognitions.size() == 3) {
+						recognitions = updatedRecognitions;
+					}
+					if (recognitions != null) {
+						telemetry.addData("# Object Detected", recognitions.size());
+						if (recognitions.size() == 3) {
 							int goldMineralX = -1;
 							int silverMineral1X = -1;
 							int silverMineral2X = -1;
-							for (Recognition recognition : updatedRecognitions) {
+							for (Recognition recognition : recognitions) {
 								if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
 									goldMineralX = (int) recognition.getLeft();
 								} else if (silverMineral1X == -1) {
@@ -170,7 +186,7 @@ public class MandelbotsAutonomous extends MandelbotsOpMode {
 		
 		OpenGLMatrix phoneLocationOnRobot = OpenGLMatrix
 				.translation(Constants.CAM_FORWARD_DISP, Constants.CAM_LEFT_DISP, Constants.CAM_VERT_DISP)
-				.multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, -90, -90, 0)); // TODO adjust rotation if necessary
+				.multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, -90, 0, 90)); // TODO adjust rotation if necessary
 		
 		targetsRoverRuckus = this.vuforia.loadTrackablesFromAsset("FourImages");
 		for (int i=0; i<4; ++i) {
@@ -192,5 +208,13 @@ public class MandelbotsAutonomous extends MandelbotsOpMode {
 	@Override
 	public DcMotor getMotor(Motor motor) {
 		return motorMap.get(motor);
+	}
+	@Override
+	public Servo getServo(ServoType servoType) {
+		return servoMap.get(servoType);
+	}
+	@Override
+	public CRServo getCRServo(CRServoType servoType) {
+		return crServoMap.get(servoType);
 	}
 }
