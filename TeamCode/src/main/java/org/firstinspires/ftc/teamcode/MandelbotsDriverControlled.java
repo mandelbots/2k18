@@ -43,6 +43,10 @@ public class MandelbotsDriverControlled extends MandelbotsOpMode {
 		runtime.reset();
 		
 		while (opModeIsActive()) {
+			//getServo(ServoType.BASKET).setPosition(0);
+			
+			if (gamepad1.right_trigger > 0.8f) getServo(ServoType.DROP).setPosition(0.32);
+			
 			this.moveRobot(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
 			
 			telemetry.addData("Lift position", getMotor(Motor.LIFT).getCurrentPosition());

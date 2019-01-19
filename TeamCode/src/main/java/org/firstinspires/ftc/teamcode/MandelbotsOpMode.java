@@ -18,11 +18,9 @@ public abstract class MandelbotsOpMode extends LinearOpMode {
 	}
 	
 	public void moveRobot(double x, double y, double rot) {
-		if (!isAutonomous()) {
-			telemetry.addData("x", x);
-			telemetry.addData("y", y);
-			telemetry.addData("rot", rot);
-		}
+		telemetry.addData("x", x);
+		telemetry.addData("y", y);
+		telemetry.addData("rot", rot);
 		
 		double[] vals = new double[] { -y + x + rot, -y - x - rot, -y - x + rot, -y + x - rot};
 		telemetry.addData("powers", Arrays.toString(vals));
@@ -38,32 +36,5 @@ public abstract class MandelbotsOpMode extends LinearOpMode {
 		for (int i=0; i<4; ++i) {
 			this.getMotor(Motor.getMovementMotors().get(i)).setPower(vals[i]);
 		}
-		
-		if (!isAutonomous()) {
-			//telemetry.addData("Rotation", robotAngle * 180 / Math.PI);
-		}
-	}
-	
-	public void grabLatch() {
-		// TODO add
-	}
-	
-	public void releaseLatch()  {
-		// TODO add
-	}
-	
-	public void moveRackAndPinion() {
-		// TODO add
-	}
-	
-	/**
-	 * @param multiplier -1 for reverse, 0 for stop, 1 for forward
-	 */
-	public void runIntake(int multiplier) {
-		// TODO add
-	}
-	
-	public void dumpContents() {
-		// TODO add
 	}
 }
