@@ -91,7 +91,7 @@ public class MandelbotsAutonomous extends MandelbotsOpMode {
 		runtime.reset();
 		
 		// Descent code
-		/*
+		
 		if (opModeIsActive()) {
 			getMotor(Motor.LIFT).setTargetPosition(-20875);
 			getMotor(Motor.LIFT).setPower(-1);
@@ -101,26 +101,36 @@ public class MandelbotsAutonomous extends MandelbotsOpMode {
 			telemetry.update();
 		}
 		
-		// Bind and loose!
-		
+		// Center gold
+		boolean foundGold2 = false;
 		if (opModeIsActive()) {
-			getMotor(Motor.FRONT_LEFT).setTargetPosition(-7);
-			moveRobot(0, -0.15, 0);
-		}
-		while (opModeIsActive() && getMotor(Motor.FRONT_LEFT).isBusy()) {
-			telemetry.addData("Status", "Bind and loose");
-			telemetry.update();
-		}
-		if (opModeIsActive()) {
-			for (Motor motor: Motor.getMovementMotors()) {
-				getMotor(motor).setPower(0);
+			if (tfod != null) {
+				tfod.activate();
+			}
+			runtime.reset();
+			while (opModeIsActive() && runtime.time() < 4) {
+				if (tfod != null) {
+					List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
+					if (updatedRecognitions != null) {
+						recognitions = updatedRecognitions;
+					}
+					if (recognitions != null) {
+						telemetry.addData("# Object Detected", recognitions.size());
+						if (recognitions.size() >= 1 && recognitions.get(0).getLabel().equals(LABEL_GOLD_MINERAL)) {
+							telemetry.addData("AU", "gold");
+							foundGold2 = true;
+							break;
+						}
+					}
+				}
+				
+				telemetry.update();
 			}
 		}
-		
 		// Rotation code
 		
 		if (opModeIsActive()) {
-			getMotor(Motor.FRONT_LEFT).setTargetPosition(-200);
+			getMotor(Motor.FRONT_LEFT).setTargetPosition(-130);
 			moveRobot(0, 0, -1);
 		}
 		while (opModeIsActive() && getMotor(Motor.FRONT_LEFT).isBusy()) {
@@ -131,54 +141,16 @@ public class MandelbotsAutonomous extends MandelbotsOpMode {
 			for (Motor motor: Motor.getMovementMotors()) {
 				getMotor(motor).setPower(0);
 			}
-		}*/
+		}
 		
 		//targetsRoverRuckus.activate();
 		
 		boolean foundGold1 = false;
 		
-		if (opModeIsActive()) {
-			if (tfod != null) {
-				tfod.activate();
-			}
-			
+		if (!foundGold2) {
 			runtime.reset();
 			
-			while (opModeIsActive() && runtime.time() < 5) {
-				// check all the trackable target to see which one (if any) is visible.
-				
-				/*
-				targetVisible = false;
-				for (VuforiaTrackable trackable : targetsRoverRuckus) {
-					if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
-						telemetry.addData("Visible Target", trackable.getName());
-						targetVisible = true;
-						
-						// getUpdatedRobotLocation() will return null if no new information is available since
-						// the last time that call was made, or if the trackable is not currently visible.
-						OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener)trackable.getListener()).getUpdatedRobotLocation();
-						if (robotLocationTransform != null) {
-							lastLocation = robotLocationTransform;
-						}
-						break;
-					}
-				}
-				
-				// Provide feedback as to where the robot is located (if we know).
-				if (targetVisible) {
-					// express position (translation) of robot in inches.
-					VectorF translation = lastLocation.getTranslation();
-					telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
-							translation.get(0) / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch);
-					
-					// express the rotation of the robot in degrees.
-					Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
-					telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
-				}
-				else {
-					telemetry.addData("Visible Target", "none");
-				}*/
-				
+			while (opModeIsActive() && runtime.time() < 4) {
 				if (tfod != null) {
 					List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
 					if (updatedRecognitions != null) {
@@ -196,25 +168,45 @@ public class MandelbotsAutonomous extends MandelbotsOpMode {
 				
 				telemetry.update();
 			}
-			
-			if (opModeIsActive()) {
-				if (foundGold1) {
-					getMotor(Motor.FRONT_LEFT).setTargetPosition(1000);
-					moveRobot(0, 1, 0);
-					while (opModeIsActive() && getMotor(Motor.FRONT_LEFT).isBusy()) {
-						telemetry.addData("Status", "Pursuing first gold");
-						telemetry.update();
-					}
-					if (opModeIsActive()) {
-						for (Motor motor : Motor.getMovementMotors()) {
-							getMotor(motor).setPower(0);
-						}
+		}
+		
+		if (opModeIsActive()) {
+			getMotor(Motor.FRONT_LEFT).setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+			runtime.reset();
+			if (foundGold1) {
+				moveRobot(0, 1, 0);
+				while (opModeIsActive() && runtime.time() < 1) {
+					telemetry.addData("Status", "Pursuing first gold");
+					telemetry.update();
+				}
+				if (opModeIsActive()) {
+					for (Motor motor : Motor.getMovementMotors()) {
+						getMotor(motor).setPower(0);
 					}
 				}
-			} else {
-				while (opModeIsActive()) {
-					telemetry.addData("Status", "Trying other golds");
+			}
+			if (foundGold2) {
+				moveRobot(-1, 0.96, 0);
+				while (opModeIsActive() && runtime.time() < 1.83) {
+					telemetry.addData("Status", "Pursuing second gold");
 					telemetry.update();
+				}
+				if (opModeIsActive()) {
+					for (Motor motor : Motor.getMovementMotors()) {
+						getMotor(motor).setPower(0);
+					}
+				}
+			}
+			if (!foundGold1 && !foundGold2) {
+				moveRobot(-1, 0.43, 0);
+				while (opModeIsActive() && runtime.time() < 2) {
+					telemetry.addData("Status", "Pursuing third gold");
+					telemetry.update();
+				}
+				if (opModeIsActive()) {
+					for (Motor motor : Motor.getMovementMotors()) {
+						getMotor(motor).setPower(0);
+					}
 				}
 			}
 		}

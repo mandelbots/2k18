@@ -13,9 +13,10 @@ public abstract class MandelbotsOpMode extends LinearOpMode {
 	abstract Servo getServo(ServoType servoType);
 	abstract CRServo getCRServo(CRServoType servoType);
 	
+	/*
 	public boolean isAutonomous() {
 		return this.getClass().getAnnotation(Autonomous.class) != null;
-	}
+	}*/
 	
 	public void moveRobot(double x, double y, double rot) {
 		telemetry.addData("x", x);
@@ -36,5 +37,10 @@ public abstract class MandelbotsOpMode extends LinearOpMode {
 		for (int i=0; i<4; ++i) {
 			this.getMotor(Motor.getMovementMotors().get(i)).setPower(vals[i]);
 		}
+	}
+	
+	public void releaseTheSupremeGod() {
+		getServo(ServoType.DROP).setPosition(0);
+		getServo(ServoType.BASKET).setPosition(1);
 	}
 }

@@ -16,6 +16,8 @@ public class MandelbotsDriverControlled extends MandelbotsOpMode {
 	private final Map<CRServoType, CRServo> crServoMap = new EnumMap<>(CRServoType.class);
 	private final Map<ServoType, Servo> servoMap = new EnumMap<>(ServoType.class);
 	
+	private boolean aFlag = false, bFlag = false;
+	
 	@Override
 	public void runOpMode() throws InterruptedException {
 		telemetry.addData("Status", "FUUUUUUUUURYYY 7!!!!!");
@@ -43,9 +45,14 @@ public class MandelbotsDriverControlled extends MandelbotsOpMode {
 		runtime.reset();
 		
 		while (opModeIsActive()) {
-			//getServo(ServoType.BASKET).setPosition(0);
+			if (gamepad1.right_bumper) {
+				this.releaseTheSupremeGod();
+			}
 			
-			if (gamepad1.right_trigger > 0.8f) getServo(ServoType.DROP).setPosition(0.32);
+			getServo(ServoType.BASKET).setPosition(getServo(ServoType.BASKET).getPosition() + (gamepad1.a && !aFlag ? 0.1 : 0) + (gamepad1.b && !bFlag ? -0.1 : 0));
+			aFlag = gamepad1.a;
+			bFlag = gamepad1.b;
+			telemetry.addData("Basket pos", getServo(ServoType.BASKET).getPosition());
 			
 			this.moveRobot(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
 			
