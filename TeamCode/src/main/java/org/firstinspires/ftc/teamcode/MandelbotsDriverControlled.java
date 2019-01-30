@@ -53,7 +53,8 @@ public class MandelbotsDriverControlled extends MandelbotsOpMode {
 			
 			getMotor(Motor.LIFT).setPower((gamepad1.x ? 1 : 0) + (gamepad1.y ? -1 : 0));
 			getMotor(Motor.ARM).setPower((gamepad1.dpad_up ? 1 : 0) + (gamepad1.dpad_down ? -1 : 0));
-			getMotor(Motor.APPLE).setPower((gamepad1.dpad_left ? 1 : 0) + (gamepad1.dpad_right ? -1 : 0));
+			getMotor(Motor.APPLE).setPower((gamepad1.dpad_left ? 0.5 : 0) + (gamepad1.dpad_right ? -0.75 : 0));
+			getMotor(Motor.APPLE).setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 			getCRServo(CRServoType.INTAKE).setPower(gamepad1.left_bumper ? 1 : 0.055);
 			
 			telemetry.addData("CR servo speed", getCRServo(CRServoType.INTAKE).getPower());
