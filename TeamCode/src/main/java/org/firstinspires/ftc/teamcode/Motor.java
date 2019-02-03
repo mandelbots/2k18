@@ -8,6 +8,7 @@ public enum Motor {
 	BACK_LEFT,
 	BACK_RIGHT,
 	ARM,
+	APPLE,
 	LIFT;
 	
 	private static final Motor[] mvmtMotors = new Motor[] { FRONT_LEFT, FRONT_RIGHT, BACK_LEFT, BACK_RIGHT };
