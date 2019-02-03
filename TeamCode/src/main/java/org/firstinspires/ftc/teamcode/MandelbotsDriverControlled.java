@@ -37,7 +37,7 @@ public class MandelbotsDriverControlled extends MandelbotsOpMode {
 		getMotor(Motor.BACK_LEFT).setDirection(DcMotor.Direction.REVERSE);
 		
 		getMotor(Motor.LIFT).setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-		getMotor(Motor.LIFT).setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+		getMotor(Motor.LIFT).setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 		
 		getMotor(Motor.ARM).setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 		
@@ -48,11 +48,6 @@ public class MandelbotsDriverControlled extends MandelbotsOpMode {
 			if (gamepad1.right_bumper) {
 				this.releaseTheSupremeGod();
 			}
-			
-			getServo(ServoType.BASKET).setPosition(getServo(ServoType.BASKET).getPosition() + (gamepad1.a && !aFlag ? 0.1 : 0) + (gamepad1.b && !bFlag ? -0.1 : 0));
-			aFlag = gamepad1.a;
-			bFlag = gamepad1.b;
-			telemetry.addData("Basket pos", getServo(ServoType.BASKET).getPosition());
 			
 			this.moveRobot(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
 			
@@ -66,7 +61,6 @@ public class MandelbotsDriverControlled extends MandelbotsOpMode {
 			
 			telemetry.addData("CR servo speed", getCRServo(CRServoType.INTAKE).getPower());
 			
-			// TODO add op mode code
 			telemetry.update();
 		}
 	}

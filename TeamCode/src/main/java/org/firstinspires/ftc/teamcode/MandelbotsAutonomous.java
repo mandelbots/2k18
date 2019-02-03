@@ -26,6 +26,9 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
+import java8.util.function.Predicate;
+import java8.util.stream.StreamSupport;
+
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
@@ -75,7 +78,7 @@ public class MandelbotsAutonomous extends MandelbotsOpMode {
 			getMotor(motor).setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		}
 		for (Motor motor: Motor.getMovementMotors()) {
-			if (motor != Motor.FRONT_LEFT) getMotor(motor).setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+			getMotor(motor).setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 		}
 		
 		initVuforia();
@@ -93,7 +96,7 @@ public class MandelbotsAutonomous extends MandelbotsOpMode {
 		// Descent code
 		
 		if (opModeIsActive()) {
-			getMotor(Motor.LIFT).setTargetPosition(-20875);
+			getMotor(Motor.LIFT).setTargetPosition(-Constants.LIFT_SHIFT);
 			getMotor(Motor.LIFT).setPower(-1);
 		}
 		while (opModeIsActive() && getMotor(Motor.LIFT).isBusy()) {
@@ -116,7 +119,12 @@ public class MandelbotsAutonomous extends MandelbotsOpMode {
 					}
 					if (recognitions != null) {
 						telemetry.addData("# Object Detected", recognitions.size());
-						if (recognitions.size() >= 1 && recognitions.get(0).getLabel().equals(LABEL_GOLD_MINERAL)) {
+						if (StreamSupport.stream(recognitions).anyMatch(new Predicate<Recognition>() {
+							@Override
+							public boolean test(Recognition recognition) {
+								return recognition.getLabel().equals(LABEL_GOLD_MINERAL);
+							}
+						})) {
 							telemetry.addData("AU", "gold");
 							foundGold2 = true;
 							break;
@@ -130,11 +138,11 @@ public class MandelbotsAutonomous extends MandelbotsOpMode {
 		// Rotation code
 		
 		if (opModeIsActive()) {
-			getMotor(Motor.FRONT_LEFT).setTargetPosition(-130);
-			moveRobot(0, 0, -1);
+			moveRobot(0, 0, +1);
+			runtime.reset();
 		}
-		while (opModeIsActive() && getMotor(Motor.FRONT_LEFT).isBusy()) {
-			telemetry.addData("Status", "Gradle gradle gradle… "+getMotor(Motor.FRONT_LEFT).getCurrentPosition());
+		while (opModeIsActive() && runtime.time() < 0.205) {
+			telemetry.addData("Status", "Gradle gradle gradle…");
 			telemetry.update();
 		}
 		if (opModeIsActive()) {
@@ -158,7 +166,12 @@ public class MandelbotsAutonomous extends MandelbotsOpMode {
 					}
 					if (recognitions != null) {
 						telemetry.addData("# Object Detected", recognitions.size());
-						if (recognitions.size() >= 1 && recognitions.get(0).getLabel().equals(LABEL_GOLD_MINERAL)) {
+						if (StreamSupport.stream(recognitions).anyMatch(new Predicate<Recognition>() {
+							@Override
+							public boolean test(Recognition recognition) {
+								return recognition.getLabel().equals(LABEL_GOLD_MINERAL);
+							}
+						})) {
 							telemetry.addData("AU", "gold");
 							foundGold1 = true;
 							break;
@@ -171,8 +184,13 @@ public class MandelbotsAutonomous extends MandelbotsOpMode {
 		}
 		
 		if (opModeIsActive()) {
-			getMotor(Motor.FRONT_LEFT).setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+			//getMotor(Motor.FRONT_LEFT).setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 			runtime.reset();
+			/*
+			while (opModeIsActive()) {
+				telemetry.addData("Status", foundGold1 + " " + foundGold2);
+				telemetry.update();
+			}*/
 			if (foundGold1) {
 				moveRobot(0, 1, 0);
 				while (opModeIsActive() && runtime.time() < 1) {
@@ -186,8 +204,8 @@ public class MandelbotsAutonomous extends MandelbotsOpMode {
 				}
 			}
 			if (foundGold2) {
-				moveRobot(-1, 0.96, 0);
-				while (opModeIsActive() && runtime.time() < 1.83) {
+				moveRobot(-0.7, 1, 0);
+				while (opModeIsActive() && runtime.time() < 1.27) {
 					telemetry.addData("Status", "Pursuing second gold");
 					telemetry.update();
 				}
@@ -198,8 +216,19 @@ public class MandelbotsAutonomous extends MandelbotsOpMode {
 				}
 			}
 			if (!foundGold1 && !foundGold2) {
-				moveRobot(-1, 0.43, 0);
-				while (opModeIsActive() && runtime.time() < 2) {
+				moveRobot(0, 0, +1);
+				while (opModeIsActive() && runtime.time() < 0.83) {
+					telemetry.addData("Status", "Pursuing third gold");
+					telemetry.update();
+				}
+				if (opModeIsActive()) {
+					for (Motor motor : Motor.getMovementMotors()) {
+						getMotor(motor).setPower(0);
+					}
+					runtime.reset();
+					moveRobot(0, -1, 0);
+				}
+				while (opModeIsActive() && runtime.time() < 1) {
 					telemetry.addData("Status", "Pursuing third gold");
 					telemetry.update();
 				}
@@ -214,6 +243,16 @@ public class MandelbotsAutonomous extends MandelbotsOpMode {
 		if (tfod != null) {
 			tfod.shutdown();
 		}
+		/*
+		// Disengage
+		if (opModeIsActive()) {
+			getMotor(Motor.LIFT).setTargetPosition(Constants.LIFT_SHIFT);
+			getMotor(Motor.LIFT).setPower(1);
+		}
+		while (opModeIsActive() && getMotor(Motor.LIFT).isBusy()) {
+			telemetry.addData("Status", "Up the ****");
+			telemetry.update();
+		}*/
 	}
 	
 	private void initVuforia() {

@@ -9,4 +9,6 @@ public class Constants {
 	public static final float CAM_FORWARD_DISP = 0;
 	public static final float CAM_VERT_DISP = 0;
 	public static final float CAM_LEFT_DISP = 0;
+	
+	public static final int LIFT_SHIFT = 23000;
 }

@@ -24,6 +24,6 @@ repositories {
 dependencies {
 	// https://mvnrepository.com/artifact/commons-io/commons-io
 	implementation group: 'commons-io', name: 'commons-io', version: '2.6'
-	
+	implementation 'net.sourceforge.streamsupport:streamsupport:1.7.0'
 	//implementation group: 'com.google.guava', name: 'guava', version: '24.1-android'
 }
