@@ -16,7 +16,7 @@ public class MandelbotsDriverControlled extends MandelbotsOpMode {
 	private final Map<CRServoType, CRServo> crServoMap = new EnumMap<>(CRServoType.class);
 	private final Map<ServoType, Servo> servoMap = new EnumMap<>(ServoType.class);
 	
-	private boolean aFlag = false, bFlag = false;
+	//private boolean aFlag = false, bFlag = false;
 	
 	@Override
 	public void runOpMode() throws InterruptedException {
@@ -49,12 +49,12 @@ public class MandelbotsDriverControlled extends MandelbotsOpMode {
 				this.releaseTheSupremeGod();
 			}
 			
-			this.moveRobot(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+			this.moveRobot(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x * 0.75);
 			
 			telemetry.addData("Lift position", getMotor(Motor.LIFT).getCurrentPosition());
 			
 			getMotor(Motor.LIFT).setPower((gamepad1.x ? 1 : 0) + (gamepad1.y ? -1 : 0));
-			getMotor(Motor.ARM).setPower((gamepad1.dpad_up ? 1 : 0) + (gamepad1.dpad_down ? -1 : 0));
+			getMotor(Motor.ARM).setPower((gamepad1.dpad_up ? 0.45 : 0) + (gamepad1.dpad_down ? -0.45 : 0));
 			getMotor(Motor.APPLE).setPower((gamepad1.dpad_left ? 0.5 : 0) + (gamepad1.dpad_right ? -0.75 : 0));
 			getMotor(Motor.APPLE).setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 			getCRServo(CRServoType.INTAKE).setPower(gamepad1.left_bumper ? 1 : 0.055);
